@@ -1,6 +1,6 @@
-# Digital Health Patient Appointment System
+# Santria - A Digital Health Patient Appointment System
 
-A complete backend API for managing patient appointments in a healthcare facility. Built with Node.js, Express, and following MVC architecture patterns.
+The complete backend API for managing patient appointments in a healthcare facility. Built with Node.js, Express, and following MVC architecture patterns.
 
 ## 🚀 Features
 
