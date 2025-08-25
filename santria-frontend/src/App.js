@@ -1,24 +1,29 @@
-import logo from './logo.svg';
-import './App.css';
+import "./App.css";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { ThemeProvider, CssBaseline } from "@mui/material";
+import theme from "./theme";
+import Layout from "./components/Layout";
+import DashboardPage from "./pages/DashboardPage";
+import PatientsPage from "./pages/PatientsPage";
+import PatientDetailPage from "./pages/PatientDetailPage";
+import AppointmentsPage from "./pages/AppointmentsPage";
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
+      <BrowserRouter>
+        <Routes>
+          <Route element={<Layout />}>
+            <Route path="/" element={<Navigate to="/dashboard" />} />
+            <Route path="/dashboard" element={<DashboardPage />} />
+            <Route path="/patients" element={<PatientsPage />} />
+            <Route path="/patients/:id" element={<PatientDetailPage />} />
+            <Route path="/appointments" element={<AppointmentsPage />} />
+          </Route>
+        </Routes>
+      </BrowserRouter>
+    </ThemeProvider>
   );
 }
 
