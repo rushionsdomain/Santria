@@ -11,6 +11,7 @@ import {
   List,
   ListItem,
   ListItemText,
+  MenuItem,
 } from "@mui/material";
 
 export default function PatientsPage() {
@@ -19,8 +20,12 @@ export default function PatientsPage() {
   const [form, setForm] = useState({
     firstName: "",
     lastName: "",
+    dateOfBirth: "",
+    gender: "Male",
     email: "",
     phoneNumber: "",
+    address: "",
+    emergencyContact: { name: "", relationship: "", phone: "" },
   });
   const [loading, setLoading] = useState(false);
 
@@ -114,15 +119,90 @@ export default function PatientsPage() {
                     setForm({ ...form, phoneNumber: e.target.value })
                   }
                 />
+                <TextField
+                  type="date"
+                  label="Date of Birth"
+                  InputLabelProps={{ shrink: true }}
+                  value={form.dateOfBirth}
+                  onChange={(e) =>
+                    setForm({ ...form, dateOfBirth: e.target.value })
+                  }
+                />
+                <TextField
+                  select
+                  label="Gender"
+                  value={form.gender}
+                  onChange={(e) => setForm({ ...form, gender: e.target.value })}
+                >
+                  <MenuItem value="Male">Male</MenuItem>
+                  <MenuItem value="Female">Female</MenuItem>
+                  <MenuItem value="Other">Other</MenuItem>
+                </TextField>
+                <TextField
+                  label="Address"
+                  value={form.address}
+                  onChange={(e) =>
+                    setForm({ ...form, address: e.target.value })
+                  }
+                />
+                <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
+                  <TextField
+                    label="Emergency Name"
+                    value={form.emergencyContact.name}
+                    onChange={(e) =>
+                      setForm({
+                        ...form,
+                        emergencyContact: {
+                          ...form.emergencyContact,
+                          name: e.target.value,
+                        },
+                      })
+                    }
+                  />
+                  <TextField
+                    label="Relationship"
+                    value={form.emergencyContact.relationship}
+                    onChange={(e) =>
+                      setForm({
+                        ...form,
+                        emergencyContact: {
+                          ...form.emergencyContact,
+                          relationship: e.target.value,
+                        },
+                      })
+                    }
+                  />
+                  <TextField
+                    label="Emergency Phone"
+                    value={form.emergencyContact.phone}
+                    onChange={(e) =>
+                      setForm({
+                        ...form,
+                        emergencyContact: {
+                          ...form.emergencyContact,
+                          phone: e.target.value,
+                        },
+                      })
+                    }
+                  />
+                </Stack>
                 <Button
                   variant="contained"
                   onClick={async () => {
-                    const p = await createPatient(form);
+                    await createPatient(form);
                     setForm({
                       firstName: "",
                       lastName: "",
+                      dateOfBirth: "",
+                      gender: "Male",
                       email: "",
                       phoneNumber: "",
+                      address: "",
+                      emergencyContact: {
+                        name: "",
+                        relationship: "",
+                        phone: "",
+                      },
                     });
                     await load();
                   }}

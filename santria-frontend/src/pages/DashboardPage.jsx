@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { fetchStats } from "../api/dashboard";
+import { fetchAppointments } from "../api/appointments";
 import {
   Card,
   CardContent,
@@ -7,21 +8,41 @@ import {
   Typography,
   Stack,
   Button,
+  Divider,
 } from "@mui/material";
 import { Link } from "react-router-dom";
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
+import {
+  PieChart,
+  Pie,
+  Cell,
+  ResponsiveContainer,
+  Tooltip,
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  BarChart,
+  Bar,
+  Legend,
+} from "recharts";
 
 const COLORS = ["#1976d2", "#42a5f5", "#66bb6a", "#ef5350"];
 
 export default function DashboardPage() {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [appointments, setAppointments] = useState([]);
   const today = useMemo(() => new Date().toISOString().split("T")[0], []);
 
   useEffect(() => {
     let mounted = true;
-    fetchStats(today)
-      .then((s) => mounted && setStats(s))
+    Promise.all([fetchStats(today), fetchAppointments()])
+      .then(([s, a]) => {
+        if (!mounted) return;
+        setStats(s);
+        setAppointments(a);
+      })
       .catch(() => mounted && setStats(null))
       .finally(() => mounted && setLoading(false));
     return () => {
@@ -37,6 +58,35 @@ export default function DashboardPage() {
         { name: "Cancelled", value: stats.cancelled || 0 },
       ]
     : [];
+
+  // Build last-7-days trend from appointments
+  const last7 = Array.from({ length: 7 }).map((_, i) => {
+    const d = new Date();
+    d.setDate(d.getDate() - (6 - i));
+    const key = d.toISOString().split("T")[0];
+    const dayApts = appointments.filter((a) => a.appointmentDate === key);
+    return { date: key.slice(5), total: dayApts.length };
+  });
+
+  // Simple per-status bar data
+  const statusBar = [
+    {
+      status: "confirmed",
+      count: appointments.filter((a) => a.status === "confirmed").length,
+    },
+    {
+      status: "pending",
+      count: appointments.filter((a) => a.status === "pending").length,
+    },
+    {
+      status: "completed",
+      count: appointments.filter((a) => a.status === "completed").length,
+    },
+    {
+      status: "cancelled",
+      count: appointments.filter((a) => a.status === "cancelled").length,
+    },
+  ];
 
   return (
     <Stack spacing={3}>
@@ -87,14 +137,14 @@ export default function DashboardPage() {
 
       <Grid container spacing={2}>
         <Grid item xs={12} md={6}>
-          <Card sx={{ height: 360 }}>
+          <Card sx={{ height: 420 }}>
             <CardContent>
               <Typography variant="subtitle2" sx={{ mb: 2 }}>
                 Appointment Status
               </Typography>
-              <ResponsiveContainer width="100%" height={260}>
+              <ResponsiveContainer width="100" height={300}>
                 <PieChart>
-                  <Pie dataKey="value" data={chartData} outerRadius={100} label>
+                  <Pie dataKey="value" data={chartData} outerRadius={120} label>
                     {chartData.map((entry, index) => (
                       <Cell
                         key={`cell-${index}`}
@@ -103,12 +153,60 @@ export default function DashboardPage() {
                     ))}
                   </Pie>
                   <Tooltip />
+                  <Legend />
                 </PieChart>
               </ResponsiveContainer>
             </CardContent>
           </Card>
         </Grid>
         <Grid item xs={12} md={6}>
+          <Card sx={{ height: 420 }}>
+            <CardContent>
+              <Typography variant="subtitle2" sx={{ mb: 2 }}>
+                Last 7 Days
+              </Typography>
+              <ResponsiveContainer width="100%" height={300}>
+                <LineChart
+                  data={last7}
+                  margin={{ top: 10, right: 20, left: 0, bottom: 0 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="date" />
+                  <YAxis allowDecimals={false} />
+                  <Tooltip />
+                  <Line
+                    type="monotone"
+                    dataKey="total"
+                    stroke="#1976d2"
+                    strokeWidth={2}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+        </Grid>
+      </Grid>
+
+      <Grid container spacing={2}>
+        <Grid item xs={12} md={8}>
+          <Card sx={{ height: 420 }}>
+            <CardContent>
+              <Typography variant="subtitle2" sx={{ mb: 2 }}>
+                Status Distribution (All)
+              </Typography>
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={statusBar}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="status" />
+                  <YAxis allowDecimals={false} />
+                  <Tooltip />
+                  <Bar dataKey="count" fill="#42a5f5" />
+                </BarChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+        </Grid>
+        <Grid item xs={12} md={4}>
           <Card>
             <CardContent>
               <Typography variant="subtitle2" sx={{ mb: 2 }}>
@@ -122,6 +220,10 @@ export default function DashboardPage() {
                   Book Appointment
                 </Button>
               </Stack>
+              <Divider sx={{ my: 2 }} />
+              <Typography color="text.secondary">
+                Data refreshes automatically from backend.
+              </Typography>
             </CardContent>
           </Card>
         </Grid>

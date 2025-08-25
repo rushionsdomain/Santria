@@ -429,12 +429,62 @@ The system supports the following medical specialties:
 
 ## 🔮 Future Enhancements
 
-- **Database Integration**: MongoDB/PostgreSQL support
+- **Database Integration**: PostgreSQL support (planned Prisma migration to keep routes stable)
 - **Authentication**: JWT-based user authentication
 - **File Uploads**: Medical document management
 - **Notifications**: Email/SMS reminders
 - **Reporting**: Advanced analytics and reports
 - **Mobile API**: Optimized for mobile applications
+
+---
+
+# Santria Frontend (React)
+
+A modern React app lives in `santria-frontend/`. It uses Material UI, React Router, Axios, and Recharts and talks to this backend.
+
+## Frontend Features
+
+- Blue/white healthcare theme, navbar + sidebar
+- Dashboard
+  - Today’s count from `/api/dashboard/stats`
+  - Status pie chart, 7‑day trend line, status distribution bar
+  - Quick actions (Add Patient, Book Appointment)
+- Patients
+  - List with search (`?search=`)
+  - Registration form (fields aligned with backend validation)
+  - Patient detail with appointment history
+- Appointments
+  - List + filters (date/status)
+  - Booking form
+  - Status updates (scheduled → in_progress → completed/cancelled)
+
+## Frontend Setup
+
+```bash
+cd santria-frontend
+npm install
+npm start
+```
+
+Optional environment override:
+
+```
+REACT_APP_API_BASE_URL=http://localhost:3000
+```
+
+## Project Status (Done / Next)
+
+Done
+
+- Backend API complete with validation, seed data, and docs
+- Frontend Dashboard, Patients, Patient Detail, Appointments integrated
+- Charts and responsive layout
+
+Next
+
+- PostgreSQL persistence via Prisma (no route changes)
+- Inline editing on Patient Detail (email/phone) and richer validation messages
+- Doctor/specialty analytics
 
 ## 🤝 Contributing
 

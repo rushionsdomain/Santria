@@ -2,7 +2,7 @@ import client from "./axiosClient";
 
 export const fetchPatients = async (query = "") => {
   const res = await client.get(`/patients`, {
-    params: query ? { q: query } : {},
+    params: query ? { search: query } : {},
   });
   return res.data.data;
 };
