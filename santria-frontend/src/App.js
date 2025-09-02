@@ -7,6 +7,7 @@ import DashboardPage from "./pages/DashboardPage";
 import PatientsPage from "./pages/PatientsPage";
 import PatientDetailPage from "./pages/PatientDetailPage";
 import AppointmentsPage from "./pages/AppointmentsPage";
+import CalendarView from "./components/CalendarView";
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
             <Route path="/patients" element={<PatientsPage />} />
             <Route path="/patients/:id" element={<PatientDetailPage />} />
             <Route path="/appointments" element={<AppointmentsPage />} />
+            <Route path="/calendar" element={<CalendarView />} />
           </Route>
         </Routes>
       </BrowserRouter>

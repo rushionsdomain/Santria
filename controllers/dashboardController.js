@@ -3,27 +3,27 @@ const Patient = require("../models/Patient");
 const moment = require("moment");
 
 // Get dashboard statistics
-const getDashboardStats = (req, res) => {
+const getDashboardStats = async (req, res) => {
   try {
     const { date } = req.query;
     const targetDate = date || moment().format("YYYY-MM-DD");
 
     // Get appointment statistics
-    const appointmentStats = Appointment.getStats(targetDate);
+    const appointmentStats = await Appointment.getStats(targetDate);
 
     // Get patient statistics
-    const allPatients = Patient.findAll();
+    const allPatients = await Patient.findAll();
     const totalPatients = allPatients.length;
 
     // Get recent appointments (last 7 days)
     const sevenDaysAgo = moment().subtract(7, "days").format("YYYY-MM-DD");
-    const recentAppointments = Appointment.findAll().filter((apt) =>
+    const recentAppointments = (await Appointment.findAll()).filter((apt) =>
       moment(apt.appointmentDate).isSameOrAfter(sevenDaysAgo)
     );
 
     // Get upcoming appointments (next 7 days)
     const nextSevenDays = moment().add(7, "days").format("YYYY-MM-DD");
-    const upcomingAppointments = Appointment.findAll().filter(
+    const upcomingAppointments = (await Appointment.findAll()).filter(
       (apt) =>
         moment(apt.appointmentDate).isSameOrBefore(nextSevenDays) &&
         apt.status !== "cancelled" &&
@@ -32,7 +32,7 @@ const getDashboardStats = (req, res) => {
 
     // Get appointments by specialty
     const appointmentsBySpecialty = {};
-    Appointment.findAll().forEach((apt) => {
+    (await Appointment.findAll()).forEach((apt) => {
       if (apt.status !== "cancelled") {
         appointmentsBySpecialty[apt.specialty] =
           (appointmentsBySpecialty[apt.specialty] || 0) + 1;
@@ -41,7 +41,7 @@ const getDashboardStats = (req, res) => {
 
     // Get appointments by doctor
     const appointmentsByDoctor = {};
-    Appointment.findAll().forEach((apt) => {
+    (await Appointment.findAll()).forEach((apt) => {
       if (apt.status !== "cancelled") {
         appointmentsByDoctor[apt.doctorName] =
           (appointmentsByDoctor[apt.doctorName] || 0) + 1;
@@ -52,20 +52,23 @@ const getDashboardStats = (req, res) => {
     const previousDay = moment(targetDate)
       .subtract(1, "day")
       .format("YYYY-MM-DD");
-    const previousDayStats = Appointment.getStats(previousDay);
+    const previousDayStats = await Appointment.getStats(previousDay);
 
     const trends = {
-      total: appointmentStats.total - previousDayStats.total,
-      confirmed: appointmentStats.confirmed - previousDayStats.confirmed,
-      pending: appointmentStats.pending - previousDayStats.pending,
-      completed: appointmentStats.completed - previousDayStats.completed,
-      cancelled: appointmentStats.cancelled - previousDayStats.cancelled,
+      total: appointmentStats.today.total - previousDayStats.today.total,
+      confirmed:
+        appointmentStats.today.confirmed - previousDayStats.today.confirmed,
+      pending: appointmentStats.today.pending - previousDayStats.today.pending,
+      completed:
+        appointmentStats.today.completed - previousDayStats.today.completed,
+      cancelled:
+        appointmentStats.today.cancelled - previousDayStats.today.cancelled,
     };
 
     const dashboardData = {
       date: targetDate,
       appointments: {
-        ...appointmentStats,
+        ...appointmentStats.today,
         trends,
       },
       patients: {
@@ -82,7 +85,7 @@ const getDashboardStats = (req, res) => {
         bySpecialty: appointmentsBySpecialty,
         byDoctor: appointmentsByDoctor,
         averageAppointmentsPerDay: Math.round(
-          Appointment.findAll().filter((apt) =>
+          (await Appointment.findAll()).filter((apt) =>
             moment(apt.createdAt).isSameOrAfter(moment().subtract(30, "days"))
           ).length / 30
         ),
@@ -104,7 +107,7 @@ const getDashboardStats = (req, res) => {
 };
 
 // Get weekly statistics
-const getWeeklyStats = (req, res) => {
+const getWeeklyStats = async (req, res) => {
   try {
     const { startDate } = req.query;
     const weekStart = startDate ? moment(startDate) : moment().startOf("week");
@@ -115,12 +118,12 @@ const getWeeklyStats = (req, res) => {
 
     while (currentDate.isSameOrBefore(weekEnd)) {
       const dateStr = currentDate.format("YYYY-MM-DD");
-      const dayStats = Appointment.getStats(dateStr);
+      const dayStats = await Appointment.getStats(dateStr);
 
       weeklyStats.push({
         date: dateStr,
         day: currentDate.format("dddd"),
-        ...dayStats,
+        ...dayStats.today,
       });
 
       currentDate.add(1, "day");
@@ -154,7 +157,7 @@ const getWeeklyStats = (req, res) => {
 };
 
 // Get monthly statistics
-const getMonthlyStats = (req, res) => {
+const getMonthlyStats = async (req, res) => {
   try {
     const { year, month } = req.query;
     const targetYear = year || moment().year();
@@ -170,12 +173,12 @@ const getMonthlyStats = (req, res) => {
 
     while (currentDate.isSameOrBefore(monthEnd)) {
       const dateStr = currentDate.format("YYYY-MM-DD");
-      const dayStats = Appointment.getStats(dateStr);
+      const dayStats = await Appointment.getStats(dateStr);
 
       monthlyStats.push({
         date: dateStr,
         day: currentDate.date(),
-        ...dayStats,
+        ...dayStats.today,
       });
 
       currentDate.add(1, "day");

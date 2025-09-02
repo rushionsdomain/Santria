@@ -1,28 +1,28 @@
-const dataStore = require("./DataStore");
+const DatabaseService = require("./DatabaseService");
 
 class Patient {
-  create(patientData) {
-    return dataStore.createPatient(patientData);
+  async create(patientData) {
+    return await DatabaseService.createPatient(patientData);
   }
 
-  findAll(query = "") {
-    return dataStore.findAllPatients(query);
+  async findAll(query = "") {
+    return await DatabaseService.findAllPatients(query);
   }
 
-  findById(id) {
-    return dataStore.findPatientById(id);
+  async findById(id) {
+    return await DatabaseService.findPatientById(id);
   }
 
-  update(id, updateData) {
-    return dataStore.updatePatient(id, updateData);
+  async update(id, updateData) {
+    return await DatabaseService.updatePatient(id, updateData);
   }
 
-  delete(id) {
-    return dataStore.deletePatient(id);
+  async delete(id) {
+    return await DatabaseService.deletePatient(id);
   }
 
-  exists(id) {
-    return dataStore.patientExists(id);
+  async exists(id) {
+    return await DatabaseService.patientExists(id);
   }
 }
 

@@ -2,10 +2,10 @@ const Patient = require("../models/Patient");
 const { validationResult } = require("express-validator");
 
 // Get all patients with optional search
-const getAllPatients = (req, res) => {
+const getAllPatients = async (req, res) => {
   try {
     const { search } = req.query;
-    const patients = Patient.findAll(search);
+    const patients = await Patient.findAll(search);
 
     res.status(200).json({
       success: true,
@@ -22,10 +22,10 @@ const getAllPatients = (req, res) => {
 };
 
 // Get patient by ID
-const getPatientById = (req, res) => {
+const getPatientById = async (req, res) => {
   try {
     const { id } = req.params;
-    const patient = Patient.findById(id);
+    const patient = await Patient.findById(id);
 
     if (!patient) {
       return res.status(404).json({
@@ -49,7 +49,7 @@ const getPatientById = (req, res) => {
 };
 
 // Create new patient
-const createPatient = (req, res) => {
+const createPatient = async (req, res) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -63,7 +63,7 @@ const createPatient = (req, res) => {
     const patientData = req.body;
 
     // Check if patient with same email already exists
-    const existingPatients = Patient.findAll();
+    const existingPatients = await Patient.findAll();
     const emailExists = existingPatients.some(
       (patient) => patient.email === patientData.email
     );
@@ -76,7 +76,7 @@ const createPatient = (req, res) => {
       });
     }
 
-    const newPatient = Patient.create(patientData);
+    const newPatient = await Patient.create(patientData);
 
     res.status(201).json({
       success: true,
@@ -93,7 +93,7 @@ const createPatient = (req, res) => {
 };
 
 // Update patient
-const updatePatient = (req, res) => {
+const updatePatient = async (req, res) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -108,7 +108,7 @@ const updatePatient = (req, res) => {
     const updateData = req.body;
 
     // Check if patient exists
-    if (!Patient.exists(id)) {
+    if (!(await Patient.exists(id))) {
       return res.status(404).json({
         success: false,
         error: "Patient not found",
@@ -118,7 +118,7 @@ const updatePatient = (req, res) => {
 
     // Check if email is being updated and if it conflicts with existing patients
     if (updateData.email) {
-      const existingPatients = Patient.findAll();
+      const existingPatients = await Patient.findAll();
       const emailExists = existingPatients.some(
         (patient) => patient.email === updateData.email && patient.id !== id
       );
@@ -132,7 +132,7 @@ const updatePatient = (req, res) => {
       }
     }
 
-    const updatedPatient = Patient.update(id, updateData);
+    const updatedPatient = await Patient.update(id, updateData);
 
     res.status(200).json({
       success: true,
@@ -149,11 +149,11 @@ const updatePatient = (req, res) => {
 };
 
 // Delete patient
-const deletePatient = (req, res) => {
+const deletePatient = async (req, res) => {
   try {
     const { id } = req.params;
 
-    if (!Patient.exists(id)) {
+    if (!(await Patient.exists(id))) {
       return res.status(404).json({
         success: false,
         error: "Patient not found",
@@ -161,7 +161,7 @@ const deletePatient = (req, res) => {
       });
     }
 
-    Patient.delete(id);
+    await Patient.delete(id);
 
     res.status(200).json({
       success: true,

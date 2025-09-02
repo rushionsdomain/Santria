@@ -4,7 +4,7 @@ const { validationResult } = require("express-validator");
 const moment = require("moment");
 
 // Get all appointments with optional filters
-const getAllAppointments = (req, res) => {
+const getAllAppointments = async (req, res) => {
   try {
     const { date, status, patientId } = req.query;
     const filters = {};
@@ -13,7 +13,7 @@ const getAllAppointments = (req, res) => {
     if (status) filters.status = status;
     if (patientId) filters.patientId = patientId;
 
-    const appointments = Appointment.findAll(filters);
+    const appointments = await Appointment.findAll(filters);
 
     res.status(200).json({
       success: true,
@@ -31,10 +31,10 @@ const getAllAppointments = (req, res) => {
 };
 
 // Get appointment by ID
-const getAppointmentById = (req, res) => {
+const getAppointmentById = async (req, res) => {
   try {
     const { id } = req.params;
-    const appointment = Appointment.findById(id);
+    const appointment = await Appointment.findById(id);
 
     if (!appointment) {
       return res.status(404).json({
@@ -58,7 +58,7 @@ const getAppointmentById = (req, res) => {
 };
 
 // Create new appointment
-const createAppointment = (req, res) => {
+const createAppointment = async (req, res) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -72,7 +72,7 @@ const createAppointment = (req, res) => {
     const appointmentData = req.body;
 
     // Validate patient exists
-    if (!Patient.exists(appointmentData.patientId)) {
+    if (!(await Patient.exists(appointmentData.patientId))) {
       return res.status(400).json({
         success: false,
         error: "Invalid patient",
@@ -81,7 +81,7 @@ const createAppointment = (req, res) => {
     }
 
     // Get patient name for the appointment
-    const patient = Patient.findById(appointmentData.patientId);
+    const patient = await Patient.findById(appointmentData.patientId);
     appointmentData.patientName = `${patient.firstName} ${patient.lastName}`;
 
     // Check if appointment date is in the future
@@ -98,12 +98,12 @@ const createAppointment = (req, res) => {
 
     // Check doctor availability
     if (
-      !Appointment.checkAvailability(
+      !(await Appointment.checkAvailability(
         appointmentData.doctorName,
         appointmentData.appointmentDate,
         appointmentData.appointmentTime,
         appointmentData.duration
-      )
+      ))
     ) {
       return res.status(400).json({
         success: false,
@@ -117,7 +117,7 @@ const createAppointment = (req, res) => {
       appointmentData.status = "pending";
     }
 
-    const newAppointment = Appointment.create(appointmentData);
+    const newAppointment = await Appointment.create(appointmentData);
 
     res.status(201).json({
       success: true,
@@ -134,7 +134,7 @@ const createAppointment = (req, res) => {
 };
 
 // Update appointment
-const updateAppointment = (req, res) => {
+const updateAppointment = async (req, res) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -149,7 +149,7 @@ const updateAppointment = (req, res) => {
     const updateData = req.body;
 
     // Check if appointment exists
-    if (!Appointment.exists(id)) {
+    if (!(await Appointment.exists(id))) {
       return res.status(404).json({
         success: false,
         error: "Appointment not found",
@@ -163,7 +163,7 @@ const updateAppointment = (req, res) => {
       updateData.appointmentTime ||
       updateData.duration
     ) {
-      const currentAppointment = Appointment.findById(id);
+      const currentAppointment = await Appointment.findById(id);
       const date =
         updateData.appointmentDate || currentAppointment.appointmentDate;
       const time =
@@ -171,12 +171,12 @@ const updateAppointment = (req, res) => {
       const duration = updateData.duration || currentAppointment.duration;
 
       if (
-        !Appointment.checkAvailability(
+        !(await Appointment.checkAvailability(
           currentAppointment.doctorName,
           date,
           time,
           duration
-        )
+        ))
       ) {
         return res.status(400).json({
           success: false,
@@ -188,7 +188,7 @@ const updateAppointment = (req, res) => {
 
     // If updating patient, validate patient exists and update patient name
     if (updateData.patientId) {
-      if (!Patient.exists(updateData.patientId)) {
+      if (!(await Patient.exists(updateData.patientId))) {
         return res.status(400).json({
           success: false,
           error: "Invalid patient",
@@ -196,11 +196,11 @@ const updateAppointment = (req, res) => {
         });
       }
 
-      const patient = Patient.findById(updateData.patientId);
+      const patient = await Patient.findById(updateData.patientId);
       updateData.patientName = `${patient.firstName} ${patient.lastName}`;
     }
 
-    const updatedAppointment = Appointment.update(id, updateData);
+    const updatedAppointment = await Appointment.update(id, updateData);
 
     res.status(200).json({
       success: true,
@@ -217,11 +217,11 @@ const updateAppointment = (req, res) => {
 };
 
 // Delete appointment (cancel)
-const deleteAppointment = (req, res) => {
+const deleteAppointment = async (req, res) => {
   try {
     const { id } = req.params;
 
-    if (!Appointment.exists(id)) {
+    if (!(await Appointment.exists(id))) {
       return res.status(404).json({
         success: false,
         error: "Appointment not found",
@@ -230,9 +230,9 @@ const deleteAppointment = (req, res) => {
     }
 
     // Instead of deleting, mark as cancelled
-    const updatedAppointment = Appointment.update(id, {
+    const updatedAppointment = await Appointment.update(id, {
       status: "cancelled",
-      notes: updateData.notes || "Appointment cancelled by user",
+      notes: "Appointment cancelled by user",
     });
 
     res.status(200).json({
@@ -250,12 +250,12 @@ const deleteAppointment = (req, res) => {
 };
 
 // Update appointment status
-const updateAppointmentStatus = (req, res) => {
+const updateAppointmentStatus = async (req, res) => {
   try {
     const { id } = req.params;
     const { status, notes } = req.body;
 
-    if (!Appointment.exists(id)) {
+    if (!(await Appointment.exists(id))) {
       return res.status(404).json({
         success: false,
         error: "Appointment not found",
@@ -275,7 +275,7 @@ const updateAppointmentStatus = (req, res) => {
     const updateData = { status };
     if (notes) updateData.notes = notes;
 
-    const updatedAppointment = Appointment.update(id, updateData);
+    const updatedAppointment = await Appointment.update(id, updateData);
 
     res.status(200).json({
       success: true,

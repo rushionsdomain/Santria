@@ -1,41 +1,36 @@
-const dataStore = require("./DataStore");
+const DatabaseService = require("./DatabaseService");
 
 class Appointment {
-  create(appointmentData) {
-    return dataStore.createAppointment(appointmentData);
+  async create(appointmentData) {
+    return await DatabaseService.createAppointment(appointmentData);
   }
 
-  findAll(filters = {}) {
-    return dataStore.findAllAppointments(filters);
+  async findAll(filters = {}) {
+    return await DatabaseService.findAllAppointments(filters);
   }
 
-  findById(id) {
-    return dataStore.findAppointmentById(id);
+  async findById(id) {
+    return await DatabaseService.findAppointmentById(id);
   }
 
-  update(id, updateData) {
-    return dataStore.updateAppointment(id, updateData);
+  async update(id, updateData) {
+    return await DatabaseService.updateAppointment(id, updateData);
   }
 
-  delete(id) {
-    return dataStore.deleteAppointment(id);
+  async delete(id) {
+    return await DatabaseService.deleteAppointment(id);
   }
 
-  exists(id) {
-    return dataStore.appointmentExists(id);
+  async exists(id) {
+    return await DatabaseService.appointmentExists(id);
   }
 
-  getStats(date = null) {
-    return dataStore.getAppointmentStats(date);
+  async getStats(date = null) {
+    return await DatabaseService.getDashboardStats(date);
   }
 
-  checkAvailability(doctorName, date, time, duration = 30) {
-    return dataStore.checkAppointmentAvailability(
-      doctorName,
-      date,
-      time,
-      duration
-    );
+  async checkAvailability(doctorName, date, time, duration = 30) {
+    return await DatabaseService.checkAvailability(date, time, doctorName);
   }
 }
 
