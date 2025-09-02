@@ -8,6 +8,7 @@ import PatientsPage from "./pages/PatientsPage";
 import PatientDetailPage from "./pages/PatientDetailPage";
 import AppointmentsPage from "./pages/AppointmentsPage";
 import CalendarView from "./components/CalendarView";
+import Chatbot from "./components/Chatbot";
 
 function App() {
   return (
@@ -24,6 +25,7 @@ function App() {
             <Route path="/calendar" element={<CalendarView />} />
           </Route>
         </Routes>
+        <Chatbot />
       </BrowserRouter>
     </ThemeProvider>
   );
